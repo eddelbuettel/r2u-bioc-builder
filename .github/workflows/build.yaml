@@ -7,10 +7,17 @@ on:
   #pull_request:
   ##release:
   workflow_dispatch:
-
-env:
-  name: "Unset"
-  dist: "Unknown"
+    inputs:
+      name:
+        description: 'A descriptive name'
+        required: false
+        default: 'Unset'
+        type: string
+      dist:
+        description: 'The Ubuntu distribution to use'
+        required: false
+        default: 'noble'
+        type: string
 
 jobs:
   setup:
@@ -22,4 +29,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check variables
-        run: echo "Variable name is $name, variable dist is $dist"
+        run: echo "Variable name is ${{ inputs.name }}, variable dist is ${{ inputs.dist }}"
