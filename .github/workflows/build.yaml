@@ -1,0 +1,21 @@
+# Experiment with bioc build via actions
+
+name: build
+
+on:
+  #push:
+  #pull_request:
+  ##release:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    container:
+      image: eddelbuettel/r2u_build:noble
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check var $name
+        run: echo "Variable is $name"
