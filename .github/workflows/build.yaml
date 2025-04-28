@@ -8,6 +8,10 @@ on:
   ##release:
   workflow_dispatch:
 
+env:
+  name: "Unset"
+  dist: "Unknown"
+
 jobs:
   setup:
     runs-on: ubuntu-24.04
@@ -18,4 +22,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check var $name
-        run: echo "Variable is $name"
+        run: echo "Variable name is $name, variable dist is $dist"
