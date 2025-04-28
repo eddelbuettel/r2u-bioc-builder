@@ -10,7 +10,7 @@ on:
 
 jobs:
   create_builder:
-    runs-on: rocker/r2u:latest
+    runs-on: ubuntu-latest
     name: build
     strategy:
       matrix:
