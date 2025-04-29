@@ -24,13 +24,34 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: rocker/r2u:noble
+      image: eddelbuettel/gha_r2u_bioc_build:noble
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check variables
         run: echo "Variable dist is ${{ inputs.dist }}"
-      - name: Unserialize
+      - name: Create Default Config and Cache
+        run: |
+          r -e 'r2u:::.createDefaultConfiguration()'
+          r -e 'r2u:::.loadDB()'
+          r -e 'r2u:::.loadAP()'
+      - name: Fetch Updated Config
+        uses: actions/checkout@v4
+        with:
+          repository: eddelbuettel/r2u-config
+          ref: feature/bioc_3_21
+          path: r2u-config
+      - name: Copy Updated Config
+        run: |
+          cp -vax r2u-config/* ~/.local/share/R/r2u
+      - name: Upload Config
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: r2u_config
+          path: ~/.local/share/R/r2u
+      - name: Unserialize targets
+        ## we go via a file as this steps runs in a container and the matrix
+        ## expansion has to work in normal mode so we use just shell and jq
         run: |
           TARGETS=$(Rscript -e 'cat(unserialize(charToRaw("${{ inputs.targets }}")))')
           echo "TARGETS is ${TARGETS}"
@@ -56,11 +77,14 @@ jobs:
       - name: Show Package Set
         run: cat /tmp/P.txt
       ## see https://www.kenmuse.com/blog/dynamic-build-matrices-in-github-actions/
+      ##
+      ## using jq ensures the JSON blob in $TARGETS is properly give as argument to 'target'
+      ## and that all the required quoting is correct 
       - id: makematrixstep
         run: |
           TARGETS=$(cat /tmp/P.txt)
           echo "TARGETS is '$TARGETS'"
-          echo "matrixoutput='${TARGETS}'" 
+          echo "matrixoutput='${TARGETS}'"
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT
           # $"
                    
@@ -76,5 +100,54 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Pretend
+      - name: Get Config
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: r2u_config
+          path: ~/.local/share/R/r2u
+      - name: Fetch Updated Config
+        uses: actions/checkout@v4
+        with:
+          repository: eddelbuettel/r2u-config
+          ref: feature/bioc_3_21
+          path: r2u-config
+      - name: Copy Updated depends.dcf
+        run: |
+          cp -vax r2u-config/depends.dcf r2u-config/depends.noble.dcf ~/.local/share/R/r2u
+      - name: Show package name
         run: echo "Matrix arg is ${{ matrix.target }}"
+      - name: Build
+        run:  r2u.r -v -d -c -f -r noble package ${{ matrix.target }}
+      - name: Check
+        run:  test -f /var/local/r2u/ubuntu/pool/dists/noble/main/*.deb
+      - name: Upload Deb
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deb-${{ matrix.target }}
+          path: /var/local/r2u/ubuntu/pool/dists/noble/main/
+
+  release_package:
+    needs: [ make_matrix, build_package ]
+    runs-on: ubuntu-24.04-arm
+    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    container:
+      image: eddelbuettel/gha_r2u_build:noble
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
+    steps:
+      - name: Get Deb
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: deb-${{ matrix.target }}
+          path: /var/local/r2u/ubuntu/pool/dists/noble/main/
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /var/local/r2u/ubuntu/pool/dists/noble/main/*deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+          
