@@ -32,6 +32,6 @@ jobs:
         with:
           push: true
           context: r2u-builder/${{ matrix.dist }}
-          tags: eddelbuettel/r2u_build:${{ matrix.dist }}
+          tags: eddelbuettel/gha_r2u_bioc_build:${{ matrix.dist }}
           
           
