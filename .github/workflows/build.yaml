@@ -14,7 +14,7 @@ on:
         default: 'noble'
         type: string
       targets:
-        description: 'Build targets as JSON array'
+        description: 'Build targets JSON array passed as serialized raw string'
         required: false
         default: ''
         type: string
@@ -29,8 +29,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check variables
-        run: echo "Variable targets is ${{ inputs.targets }}, variable dist is ${{ inputs.dist }}"
-
+        run: echo "Variable dist is ${{ inputs.dist }}"
+      - name: Unserialize
+        run: |
+          TARGETS=$(Rscript -e 'cat(unserialize(charToRaw("${{ inputs.targets }}")))')
+          echo "TARGETS is ${TARGETS}"
+          echo "${TARGETS}" > /tmp/P.txt
+      - name: Upload Package Set
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: package_set
+          path: /tmp/P.txt
+          
   make_matrix:
     needs: setup
     runs-on: ubuntu-24.04
@@ -38,23 +48,28 @@ jobs:
     outputs:
       runmatrix: ${{ steps.makematrixstep.outputs.matrixoutput }}
     steps:
-      - name: Show targets
-        run: echo ${{ inputs.targets }}
+      - name: Get Package Set
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: package_set
+          path: /tmp
+      - name: Show Package Set
+        run: cat /tmp/P.txt
       ## see https://www.kenmuse.com/blog/dynamic-build-matrices-in-github-actions/
       - id: makematrixstep
         run: |
-          TARGETS=${{ inputs.targets }}
+          TARGETS=$(cat /tmp/P.txt)
           echo "TARGETS is '$TARGETS'"
-          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '$environments')" 
-          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '$environments')" >> $GITHUB_OUTPUT        
+          echo "matrixoutput='${TARGETS}'" 
+          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT
           # $"
-
+                   
   build_package:
     needs: make_matrix
     runs-on: ubuntu-24.04
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_build:noble
+      image: eddelbuettel/gha_r2u_bioc_build:noble
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
