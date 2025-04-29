@@ -8,15 +8,15 @@ on:
   ##release:
   workflow_dispatch:
     inputs:
-      name:
-        description: 'A descriptive name'
-        required: false
-        default: 'Unset'
-        type: string
       dist:
         description: 'The Ubuntu distribution to use'
         required: false
         default: 'noble'
+        type: string
+      targets:
+        description: 'Build targets as JSON array'
+        required: false
+        default: ''
         type: string
 
 jobs:
@@ -29,4 +29,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check variables
-        run: echo "Variable name is ${{ inputs.name }}, variable dist is ${{ inputs.dist }}"
+        run: echo "Variable targets is ${{ inputs.targets }}, variable dist is ${{ inputs.dist }}"
+
+  make_matrix:
+    needs: setup
+    runs-on: ubuntu-24.04
+    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    outputs:
+      runmatrix: ${{ steps.makematrixstep.outputs.matrixoutput }}
+    steps:
+      - name: Show targets
+        run: echo ${{ inputs.targets }}
+      ## see https://www.kenmuse.com/blog/dynamic-build-matrices-in-github-actions/
+      - id: makematrixstep
+        run: |
+          TARGETS=${{ inputs.targets }}
+          echo "TARGETS is '$TARGETS'"
+          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '$environments')" 
+          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '$environments')" >> $GITHUB_OUTPUT        
+          # $"
+
+  build_package:
+    needs: make_matrix
+    runs-on: ubuntu-24.04
+    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    container:
+      image: eddelbuettel/gha_r2u_build:noble
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Pretend
+        run: echo "Matrix arg is ${{ matrix.target }}"
