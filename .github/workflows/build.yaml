@@ -131,10 +131,10 @@ jobs:
 
   release_package:
     needs: [ make_matrix, build_package ]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_build:${{ inputs.dist }}
+      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}

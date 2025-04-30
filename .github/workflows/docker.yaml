@@ -14,8 +14,7 @@ jobs:
     name: build
     strategy:
       matrix:
-        dist: [noble]
-    #    dist: [noble, jammy, focal]
+        dist: [noble, jammy, focal]
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     steps:
       - name: Checkout
