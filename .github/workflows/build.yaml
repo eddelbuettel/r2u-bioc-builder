@@ -37,7 +37,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: eddelbuettel/r2u-config
-          ref: feature/bioc_3_21
           path: r2u-config
       - name: Copy Updated Config
         run: |
@@ -54,8 +53,11 @@ jobs:
       - name: Unserialize targets
         ## we go via a file as this steps runs in a container and the matrix
         ## expansion has to work in normal mode so we use just shell and jq
+        ## inputs.targets is a simple string with ',' concatenated packages
+        ## such "BiocStyle,BiocVersion" which we split, double-quote,
+        ## concatenate with "," again and surround with a pair of '[' and ']'
         run: |
-          TARGETS=$(Rscript -e 'cat(unserialize(charToRaw("${{ inputs.targets }}")))')
+          TARGETS=$(Rscript -e 'cat(paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"))')
           echo "TARGETS is ${TARGETS}"
           echo "${TARGETS}" > /tmp/P.txt
       - name: Upload Package Set
@@ -111,7 +113,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: eddelbuettel/r2u-config
-          ref: feature/bioc_3_21
           path: r2u-config
       - name: Copy Updated depends.dcf
         run: |
