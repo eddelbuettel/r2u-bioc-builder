@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_bioc_build:noble
+      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_bioc_build:noble
+      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
@@ -116,25 +116,25 @@ jobs:
           path: r2u-config
       - name: Copy Updated depends.dcf
         run: |
-          cp -vax r2u-config/depends.dcf r2u-config/depends.noble.dcf ~/.local/share/R/r2u
+          cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
       - name: Show package name
         run: echo "Matrix arg is ${{ matrix.target }}"
       - name: Build
-        run:  r2u.r -v -d -c -f -r noble package ${{ matrix.target }}
+        run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
-        run:  test -f /var/local/r2u/ubuntu/pool/dists/noble/main/*.deb
+        run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
       - name: Upload Deb
         uses: actions/upload-artifact@v4.4.0
         with:
           name: deb-${{ matrix.target }}
-          path: /var/local/r2u/ubuntu/pool/dists/noble/main/
+          path: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/
 
   release_package:
     needs: [ make_matrix, build_package ]
     runs-on: ubuntu-24.04-arm
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_build:noble
+      image: eddelbuettel/gha_r2u_build:${{ inputs.dist }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
@@ -143,11 +143,11 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           name: deb-${{ matrix.target }}
-          path: /var/local/r2u/ubuntu/pool/dists/noble/main/
+          path: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: /var/local/r2u/ubuntu/pool/dists/noble/main/*deb
+          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
           make_latest: true
           prerelease: true
           tag_name: latest
