@@ -75,7 +75,8 @@ jobs:
           # 
           #TARGETS=$(echo '[ "h5mread" ]')
           #TARGETS=$(echo '[ "msigdb" ]')
-          TARGETS=$(echo '["IlluminaHumanMethylationEPICanno.ilm10b4.hg19", "IlluminaHumanMethylation450kanno.ilmn12.hg19"]')
+          #TARGETS=$(echo '["IlluminaHumanMethylationEPICanno.ilm10b4.hg19", "IlluminaHumanMethylation450kanno.ilmn12.hg19"]')
+          TARGETS=$(echo '[ "limma" ]')
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT        
           
   package:
@@ -104,7 +105,7 @@ jobs:
         run: |
           cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf r2u-config/blacklist.txt ~/.local/share/R/r2u
       - name: Build
-        run:  r2u.r -v -d -c -f -s .3 -r ${{ inputs.dist }} package ${{ matrix.target }}
+        run:  r2u.r -v -d -c -f -s .2 -r ${{ inputs.dist }} package ${{ matrix.target }}
         #run:  r2u.r -v -d -c -f       -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
