@@ -73,8 +73,8 @@ jobs:
           #echo "TARGETS is '$TARGETS'"
           #echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '$environments')" >> $GITHUB_OUTPUT        
           # 
-          TARGETS=$(echo '[ "h5mread" ]')
-          #TARGETS=$(echo '[ "msigdb" ]')
+          #TARGETS=$(echo '[ "h5mread" ]')
+          TARGETS=$(echo '[ "msigdb" ]')
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT        
           
   package:
