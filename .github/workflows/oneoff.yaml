@@ -11,7 +11,7 @@ on:
       dist:
         description: 'The Ubuntu distribution to use'
         required: false
-        default: 'focal'
+        default: 'noble'
         type: string
 
 jobs:
@@ -76,8 +76,9 @@ jobs:
           #TARGETS=$(echo '[ "h5mread" ]')
           #TARGETS=$(echo '[ "msigdb" ]')
           #TARGETS=$(echo '["IlluminaHumanMethylationEPICanno.ilm10b4.hg19", "IlluminaHumanMethylation450kanno.ilmn12.hg19"]')
-          TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
+          #TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
           #TARGETS=$(echo '[ "limma" ]')
+          TARGETS=$(echo '[ "SingleCellExperiment" ]')
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT        
           
   package:
