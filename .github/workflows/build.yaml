@@ -67,8 +67,11 @@ jobs:
           TARGETS=$(Rscript -e 'cat(paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"))')
           echo "TARGETS is ${TARGETS}"
           echo "${TARGETS}" > /tmp/P.txt
+          cat /tmp/P.txt
           #Rscript -e "cat(\"${TARGETS}\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)"
-          Rscript -e 'tgt <- paste0("[", paste(sapply(strsplit("${{inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"); cat(tgt, "\n", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)'
+          #Rscript -e 'tgt <- paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"); cat(tgt, "\n", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)'
+          #                         1          2      3        4                           4        4 4       4        43              2     1     1                          2                 2             1  
+          Rscript -e 'tgt <- paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"); print(tgt)'
       - name: Upload Package Set
         uses: actions/upload-artifact@v4.4.0
         with:
