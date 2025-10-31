@@ -33,7 +33,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check variables
-        run: echo "Variable dist is ${{ inputs.dist }}"
+        run: |
+          echo "Variable dist is ${{ inputs.dist }}"
+          echo "Variable targets is ${{ inputs.targets }}"
       - name: Create Default Config and Cache
         run: |
           r -e 'r2u:::.createDefaultConfiguration()'
