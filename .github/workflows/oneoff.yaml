@@ -78,7 +78,8 @@ jobs:
           #TARGETS=$(echo '["IlluminaHumanMethylationEPICanno.ilm10b4.hg19", "IlluminaHumanMethylation450kanno.ilmn12.hg19"]')
           #TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
           #TARGETS=$(echo '[ "limma" ]')
-          TARGETS=$(echo '[ "SingleCellExperiment" ]')
+          #TARGETS=$(echo '[ "SingleCellExperiment" ]')
+          TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT        
           
   package:
