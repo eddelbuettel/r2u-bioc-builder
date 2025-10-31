@@ -79,7 +79,8 @@ jobs:
           #TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
           #TARGETS=$(echo '[ "limma" ]')
           #TARGETS=$(echo '[ "SingleCellExperiment" ]')
-          TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
+          #TARGETS=$(echo '["BSgenome.Hsapiens.UCSC.hg19","BSgenome.Mmusculus.UCSC.mm10","BSgenome.Mmusculus.UCSC.mm9"]')
+          TARGETS=$(echo '["IlluminaHumanMethylation450kanno.ilmn12.hg19"]')
           echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT        
           
   package:
@@ -108,7 +109,7 @@ jobs:
         run: |
           cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf r2u-config/blacklist.txt ~/.local/share/R/r2u
       - name: Build
-        run:  r2u.r -v -d -c -f -s .2 -r ${{ inputs.dist }} package ${{ matrix.target }}
+        run:  r2u.r -v -d -c -f -s .3 -r ${{ inputs.dist }} package ${{ matrix.target }}
         #run:  r2u.r -v -d -c -f       -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
