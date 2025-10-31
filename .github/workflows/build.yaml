@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check variables
+      - name: Check Variables
         run: |
           echo "Variable dist is ${{ inputs.dist }}"
           echo "Variable targets is ${{ inputs.targets }}"
@@ -67,7 +67,8 @@ jobs:
           TARGETS=$(Rscript -e 'cat(paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"))')
           echo "TARGETS is ${TARGETS}"
           echo "${TARGETS}" > /tmp/P.txt
-          Rscript -e "cat(\"${TARGETS}\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)"
+          #Rscript -e "cat(\"${TARGETS}\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)"
+          Rscript -e 'tgt <- paste0("[", paste(sapply(strsplit("${{inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"); cat(tgt, "\n", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)'
       - name: Upload Package Set
         uses: actions/upload-artifact@v4.4.0
         with:
