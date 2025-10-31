@@ -11,7 +11,8 @@ on:
       dist:
         description: 'The Ubuntu distribution to use'
         required: false
-        default: 'noble'
+        #default: 'noble'
+        default: 'jammy'
         type: string
       targets:
         description: 'Build targets array passed as comma-separated package names'
