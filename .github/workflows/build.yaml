@@ -14,7 +14,7 @@ on:
         default: 'noble'
         type: string
       targets:
-        description: 'Build targets JSON array passed as serialized raw string'
+        description: 'Build targets array passed as comma-separated package names'
         required: false
         default: ''
         type: string
@@ -25,6 +25,9 @@ jobs:
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+    outputs:
+      description: 'Targets to run'
+      targets_key: ${{ steps.create-targets.outputs.TARGET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,6 +56,7 @@ jobs:
       - name: Unserialize targets
         ## we go via a file as this steps runs in a container and the matrix
         ## expansion has to work in normal mode so we use just shell and jq
+        ## 
         ## inputs.targets is a simple string with ',' concatenated packages
         ## such "BiocStyle,BiocVersion" which we split, double-quote,
         ## concatenate with "," again and surround with a pair of '[' and ']'
@@ -60,6 +64,7 @@ jobs:
           TARGETS=$(Rscript -e 'cat(paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"))')
           echo "TARGETS is ${TARGETS}"
           echo "${TARGETS}" > /tmp/P.txt
+          Rscript -e "cat(\"${TARGETS}\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)"
       - name: Upload Package Set
         uses: actions/upload-artifact@v4.4.0
         with:
@@ -80,6 +85,10 @@ jobs:
           path: /tmp
       - name: Show Package Set
         run: cat /tmp/P.txt
+      - name: Show Package Set
+        run: echo "Targets var is ${TARGETS}"
+        env:
+          TARGETS: ${{ needs.setup.outputs.targets_key }}
       ## see https://www.kenmuse.com/blog/dynamic-build-matrices-in-github-actions/
       ##
       ## using jq ensures the JSON blob in $TARGETS is properly give as argument to 'target'
