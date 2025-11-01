@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       dist:
-        description: 'The Ubuntu distribution to use'
-        required: false
-        #default: 'noble'
-        default: 'jammy'
+        description: 'Ubuntu distribution to use'
+        required: true
+        default: 'noble'
         type: string
       targets:
-        description: 'Build targets array passed as comma-separated package names'
-        required: false
+        description: 'Targets as JSON as in {"target":["ab","cd","de"]}'
+        required: true
+        ##default: '{ "target": [ "alpha", "beta", "gamma" ] }'
         default: ''
         type: string
 
@@ -26,9 +26,6 @@ jobs:
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
-    outputs:
-      description: 'Targets to run'
-      targets_key: ${{ steps.create-targets.outputs.TARGET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,65 +53,16 @@ jobs:
         with:
           name: r2u_config
           path: ~/.local/share/R/r2u
-      - name: Unserialize targets
-        ## we go via a file as this steps runs in a container and the matrix
-        ## expansion has to work in normal mode so we use just shell and jq
-        ## 
-        ## inputs.targets is a simple string with ',' concatenated packages
-        ## such "BiocStyle,BiocVersion" which we split, double-quote,
-        ## concatenate with "," again and surround with a pair of '[' and ']'
-        run: |
-          TARGETS=$(Rscript -e 'cat(paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"))')
-          echo "TARGETS is ${TARGETS}"
-          echo "${TARGETS}" > /tmp/P.txt
-          cat /tmp/P.txt
-          #Rscript -e "cat(\"${TARGETS}\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)"
-          #Rscript -e 'tgt <- paste0("[", paste(sapply(strsplit("${{ inputs.targets }}", ",")[[1]], \(x) dQuote(x, FALSE)), collapse=","), "]"); cat(tgt, \"\n\", file=Sys.getenv(\"GITHUB_OUTPUT\"), append=TRUE)'
-      - name: Upload Package Set
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: package_set
-          path: /tmp/P.txt
-          
-  make_matrix:
-    needs: setup
-    runs-on: ubuntu-24.04
-    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
-    outputs:
-      runmatrix: ${{ steps.makematrixstep.outputs.matrixoutput }}
-    steps:
-      - name: Get Package Set
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: package_set
-          path: /tmp
-      - name: Show Package Set
-        run: cat /tmp/P.txt
-      - name: Show Package Set
-        run: echo "Targets var is ${TARGETS}"
-        env:
-          TARGETS: ${{ needs.setup.outputs.targets_key }}
-      ## see https://www.kenmuse.com/blog/dynamic-build-matrices-in-github-actions/
-      ##
-      ## using jq ensures the JSON blob in $TARGETS is properly give as argument to 'target'
-      ## and that all the required quoting is correct 
-      - id: makematrixstep
-        run: |
-          TARGETS=$(cat /tmp/P.txt)
-          echo "TARGETS is '$TARGETS'"
-          echo "matrixoutput='${TARGETS}'"
-          echo "matrixoutput=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT
-          # $"
                    
-  build_package:
-    needs: make_matrix
+  build:
+    needs: setup
     runs-on: ubuntu-24.04
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
+      matrix: ${{ fromJson(inputs.targets) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -137,29 +85,20 @@ jobs:
         run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
-      - name: Upload Deb
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: deb-${{ matrix.target }}
-          path: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/
-
-  release_package:
-    needs: [ make_matrix, build_package ]
-    runs-on: ubuntu-latest
-    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
-    container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
-    steps:
-      - name: Get Deb
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: deb-${{ matrix.target }}
-          path: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/
       - name: Release
         uses: softprops/action-gh-release@v2
+        with:
+          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+      - name: Release (Take 2)
+        if: steps.build.outcome == 'failure'
+        # we have about one in 10 or 20 uploads fail and a simple (manual)
+        # rerun helps; adding this second trial may alleviate a few of these
+        uses: softprops/action-gh-release@v2.2.2  # 2025-06-10: v2 is currently broken
         with:
           files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
           make_latest: true
