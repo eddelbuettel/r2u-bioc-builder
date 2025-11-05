@@ -13,6 +13,11 @@ on:
         required: true
         default: 'noble'
         type: string
+      arch:
+        description: 'Architecture: "" or "-arm"'
+        required: true
+        default: ''
+        type: string
       targets:
         description: 'Targets as JSON as in {"target":["ab","cd","de"]}'
         required: true
@@ -22,7 +27,7 @@ on:
 
 jobs:
   setup:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04${{ inputs.arch }}
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
@@ -56,7 +61,7 @@ jobs:
                    
   build:
     needs: setup
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04${{ inputs.arch }}
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
