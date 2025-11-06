@@ -18,12 +18,10 @@ on:
           - jammy
           - noble
       arch:
-        description: 'Architecture'
+        description: 'Architecture: "" or "-arm"'
         required: true
         default: ''
-        options:
-          - ''
-          - '-arm'
+        type: string
       targets:
         description: 'JSON targets as eg {"target":["ab","cd","de"]}'
         required: true
