@@ -16,7 +16,7 @@ on:
       arch:
         description: 'Architecture: "" or "-arm"'
         required: true
-        default: ''
+        default: '-arm'
         type: string
       targets:
         description: 'Targets as JSON as in {"target":["ab","cd","de"]}'
