@@ -12,14 +12,20 @@ on:
         description: 'Ubuntu distribution to use'
         required: true
         default: 'noble'
-        type: string
+        type: choice
+        options:
+          - focal
+          - jammy
+          - noble
       arch:
-        description: 'Architecture: "" or "-arm"'
+        description: 'Architecture'
         required: true
         default: ''
-        type: string
+        options:
+          - ''
+          - '-arm'
       targets:
-        description: 'Targets as JSON as in {"target":["ab","cd","de"]}'
+        description: 'JSON targets as eg {"target":["ab","cd","de"]}'
         required: true
         ##default: '{ "target": [ "alpha", "beta", "gamma" ] }'
         default: ''
