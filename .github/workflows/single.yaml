@@ -20,8 +20,8 @@ jobs:
       - name: Build
         run: |
           cd pkgs
-          mkdir -p /var/local/r2u/build/noble/src/
-          cp -vax zlibbioc /var/local/r2u/build/noble/src/
-          cp -vax zlibbioc /var/local/r2u/build/noble/
+          mkdir -p /var/local/r2u/build/noble/zlibbioc/src/
+          cp -vax zlibbioc /var/local/r2u/build/noble/zlibbioc/src/
+          cp -vax zlibbioc/debian /var/local/r2u/build/noble/zlibbioc/
           debBuild.sh -b -s -d noble zlibbioc
 
