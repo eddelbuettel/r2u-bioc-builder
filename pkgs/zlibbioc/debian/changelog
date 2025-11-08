@@ -1,6 +1,6 @@
-r-bioc-zlibbioc (1.55.0-1.ca2404.2) unstable; urgency=medium
+r-bioc-zlibbioc (1.55.0-1.ca2404.1) unstable; urgency=medium
 
-  * Reinstating for arm64
+  * Reinstating for arm64 based on deprecated/removed 1.55 sources
 
  -- Dirk Eddelbuettel <edd@debian.org>  Sat, 08 Nov 2025 14:24:41 -0600
 
