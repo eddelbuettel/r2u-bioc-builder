@@ -23,5 +23,16 @@ jobs:
           mkdir -p /var/local/r2u/build/noble/zlibbioc/src/
           cp -vax zlibbioc /var/local/r2u/build/noble/zlibbioc/src/
           cp -vax zlibbioc/debian /var/local/r2u/build/noble/zlibbioc/
-          debBuild.sh -b -s -d noble zlibbioc
+          #debBuild.sh -b -s -d noble zlibbioc
+          mkdir -p /var/local/r2u/build/noble/zlibbioc/debian/r-bioc-zlibbioc/usr/lib/R/site-library
+          cd /var/local/r2u/build/noble/zlibbioc/src/
+          R CMD INSTALL -l ../../zlibbioc/debian/r-bioc-zlibbioc/usr/lib/R/site-library zlibbioc
+          cd /var/local/r2u/build/noble/zlibbioc/
+          dpkg-buildpackage -us -uc -d -b
+          cd ..
+          ls -l
+          
 
+
+
+  #
