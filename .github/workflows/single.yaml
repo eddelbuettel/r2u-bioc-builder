@@ -1,4 +1,6 @@
 # Experiment with bioc build via actions -- filling in a single binaru
+#
+# This is very one-off as we have to do an ad-hoc build on arm64
 
 name: single
 
@@ -21,9 +23,8 @@ jobs:
         run: |
           cd pkgs
           mkdir -p /var/local/r2u/build/noble/zlibbioc/src/
-          cp -vax zlibbioc /var/local/r2u/build/noble/zlibbioc/src/
-          cp -vax zlibbioc/debian /var/local/r2u/build/noble/zlibbioc/
-          #debBuild.sh -b -s -d noble zlibbioc
+          cp -ax zlibbioc /var/local/r2u/build/noble/zlibbioc/src/
+          cp -ax zlibbioc/debian /var/local/r2u/build/noble/zlibbioc/
           mkdir -p /var/local/r2u/build/noble/zlibbioc/debian/r-bioc-zlibbioc/usr/lib/R/site-library
           cd /var/local/r2u/build/noble/zlibbioc/src/
           R CMD INSTALL -l ../../zlibbioc/debian/r-bioc-zlibbioc/usr/lib/R/site-library zlibbioc
@@ -31,7 +32,16 @@ jobs:
           dpkg-buildpackage -us -uc -d -b
           cd ..
           ls -l
-          
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          #files: /var/local/r2u/ubuntu/pool/dists/noble/main/*deb
+          files: /var/local/r2u/build/noble/r-bioc-zlibbioc_*.deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
 
 
 
