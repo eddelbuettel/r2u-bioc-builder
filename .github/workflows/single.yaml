@@ -1,0 +1,27 @@
+# Experiment with bioc build via actions -- filling in a single binaru
+
+name: single
+
+on:
+  push:
+  #pull_request:
+  ##release:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-24.04-arm
+    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    container:
+      image: eddelbuettel/gha_r2u_bioc_build:noble
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cd pkgs
+          mkdir -p /var/local/r2u/build/noble/src/
+          cp -vax zlibbioc /var/local/r2u/build/noble/src/
+          cp -vax zlibbioc /var/local/r2u/build/noble/
+          debBuild.sh -b -s -d noble zlibbioc
+

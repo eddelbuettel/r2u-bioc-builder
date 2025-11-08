@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+override_dh_prep:
+	@echo "Skipping dh_prep"
+
+override_dh_clean:
+	@echo "Skipping dh_clean"
+
+override_dh_auto_install:
+	@echo "R:Depends=r-base-core (>= 4.5.0), r-api-4.0" >> debian/r-bioc-zlibbioc.substvars
+
+override_dh_auto_build:
+	@echo "Skipping dh_auto_build"
+
+%:
+	dh $@ --buildsystem R

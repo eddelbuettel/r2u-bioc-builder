@@ -1,0 +1,11 @@
+r-bioc-zlibbioc (1.55.0-1.ca2404.2) unstable; urgency=medium
+
+  * Reinstating for arm64
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 08 Nov 2025 14:24:41 -0600
+
+r-bioc-zlibbioc (1.54.0-1.ca2404.1) noble; urgency=medium
+
+  * CRANapt build
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Wed, 30 Apr 2025 17:04:49 +0000

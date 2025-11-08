@@ -1,0 +1,19 @@
+.PHONY: all libzbioc
+
+all: libzbioc $(SHLIB)
+
+libzbioc:
+	mkdir -p "${R_PACKAGE_DIR}/include"
+	@(if [ "yes" = "@LIBZBIOC@" ]; then \
+	  cd zlib-1.2.5 && \
+	    $(MAKE) -fMakefile libzbioc.a libzbioc.so.1.2.5 && \
+	    cd ..; \
+	  cp zlib-1.2.5/libzbioc.* .; \
+	  cp zlib-1.2.5/zconf.h zlib-1.2.5/zlib.h \
+	    "${R_PACKAGE_DIR}/include"; \
+	fi)
+
+clean:
+	@(if test @LIBZBIOC@ = yes; then \
+		cd zlib-1.2.5 && $(MAKE) -fMakefile clean && cd ..; \
+	fi)

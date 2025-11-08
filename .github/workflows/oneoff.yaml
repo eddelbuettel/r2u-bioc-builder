@@ -1,4 +1,10 @@
-# Experiment with bioc -- one-off builder
+## Experiment with bioc -- one-off builder
+##
+## This is no longer needed as we can pass a (JSON) string with
+## the desired packages to builder.yaml
+##
+## It is also no longer current as we can pass a matrix of targets
+## via GITHUB_OUTPUT
 
 name: oneoff
 

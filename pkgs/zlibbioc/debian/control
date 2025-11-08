@@ -1,0 +1,17 @@
+Source: r-bioc-zlibbioc
+Section: gnu-r
+Priority: optional
+Maintainer: Dirk Eddelbuettel <edd@debian.org>
+Build-Depends: debhelper-compat (= 13), r-base-dev (>= 4.5.0), dh-r
+Standards-Version: 4.7.0
+Homepage: https://cran.r-project.org/package=zlibbioc
+
+Package: r-bioc-zlibbioc
+Architecture: any
+Depends: ${R:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Suggests: r-bioc-biocstyle, r-cran-knitr
+Description: Bioc Package 'zlibbioc' (An R packaged zlib-1.2.5)
+ This package uses the source code of zlib-1.2.5 to create libraries for
+ systems that do not have these available via other means (most Linux and Mac
+ users should have system-level access to zlib, and no direct need for this
+ package). See the vignette for instructions on use.

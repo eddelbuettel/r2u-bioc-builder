@@ -1,0 +1,12 @@
+2011-09-29  Martin Morgan  <mtmorgan@fhcrc.org>
+
+	* configure.ac: build libzbioc only on Windows by default
+
+2011-05-30  Martin Morgan  <mtmorgan@fhcrc.org>
+
+	* src/zlib-1.2.5: adjust zlib for zlibbioc
+	-  remove unnecessary files
+	- rename dll zlib1bioc.dll
+	- adjust prefix to bioc_
+	- map export symbols to bioc_ in win32/zlib.def
+	- manually set PREFIX in make file for GCC version switch
