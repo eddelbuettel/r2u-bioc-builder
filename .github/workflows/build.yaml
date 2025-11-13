@@ -27,7 +27,7 @@ on:
           - cran
       arch:
         description: 'Architecture: "" or "-arm"'
-        required: true
+        required: false
         default: ''
         type: string
       targets:
