@@ -17,6 +17,14 @@ on:
           - focal
           - jammy
           - noble
+      repo:
+        description: 'Repo for Package Status'
+        required: true
+        default: 'p3m'
+        type: choice
+        options:
+          - p3m
+          - cran
       arch:
         description: 'Architecture: "" or "-arm"'
         required: true
@@ -41,6 +49,7 @@ jobs:
       - name: Check Variables
         run: |
           echo "Variable dist is ${{ inputs.dist }}"
+          echo "Variable repo is ${{ inputs.repo }}"
           echo "Variable targets is ${{ inputs.targets }}"
       - name: Create Default Config and Cache
         run: |
@@ -56,7 +65,7 @@ jobs:
       - name: Create Cache
         run: |
           r -e 'r2u:::.loadDB()'
-          r -e 'r2u:::.loadAP()'
+          r -e 'r2u:::.loadAP(repo="${{ inputs.repo }}")'
       - name: Upload Config
         uses: actions/upload-artifact@v4.4.0
         with:
