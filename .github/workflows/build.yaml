@@ -49,6 +49,7 @@ jobs:
       - name: Check Variables
         run: |
           echo "Variable dist is ${{ inputs.dist }}"
+          echo "Variable arch is ${{ inputs.arch }}"
           echo "Variable repo is ${{ inputs.repo }}"
           echo "Variable targets is ${{ inputs.targets }}"
       - name: Create Default Config and Cache
