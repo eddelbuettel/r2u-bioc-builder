@@ -5,7 +5,7 @@
 name: single
 
 on:
-  push:
+  #push:
   #pull_request:
   ##release:
   workflow_dispatch:
