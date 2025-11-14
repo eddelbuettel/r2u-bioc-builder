@@ -100,6 +100,8 @@ jobs:
           ## FIXME: We want a setter for the config file
           echo "package_repo_preference: ${{ inputs.repo }}" >> ~/.local/share/R/r2u/config.dcf
           cat ~/.local/share/R/r2u/config.dcf
+          ## FIXME
+          Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
       - name: Show package name
         run: echo "Matrix arg is ${{ matrix.target }}"
       - name: Build
