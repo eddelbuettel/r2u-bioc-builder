@@ -99,7 +99,7 @@ jobs:
         run: |
           cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
           ## Use setter for the config file
-          Rscript -e 'f <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, f)'
+          Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
           ## Now update with CRAN info
           Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
       - name: Show package name
