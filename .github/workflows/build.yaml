@@ -62,6 +62,9 @@ jobs:
       - name: Copy Updated Config
         run: |
           cp -vax r2u-config/* ~/.local/share/R/r2u
+          ## FIXME: We want a setter for the config file
+          echo "package_repo_preference: ${{ inputs.repo }}" >> ~/.local/share/R/r2u/config.dcf
+          cat ~/.local/share/R/r2u/config.dcf
       - name: Create Cache
         run: |
           r -e 'r2u:::.loadDB()'
