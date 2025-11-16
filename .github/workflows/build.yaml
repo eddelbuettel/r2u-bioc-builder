@@ -8,50 +8,47 @@ on:
   ##release:
   workflow_dispatch:
     inputs:
-      dist:
-        description: 'Ubuntu distribution to use'
-        required: true
-        default: 'noble'
-        type: choice
-        options:
-          - focal
-          - jammy
-          - noble
+      # dist:
+      #   description: 'Ubuntu distribution to use'
+      #   required: true
+      #   default: 'noble'
+      #   type: choice
+      #   options:
+      #     - focal
+      #     - jammy
+      #     - noble
       repo:
         description: 'Repo for Package Status'
         required: true
-        default: 'p3m'
+        default: 'cran'
         type: choice
         options:
           - p3m
           - cran
-      arch:
-        description: 'Architecture: "" or "-arm"'
-        required: false
-        default: ''
-        type: string
+      # arch:
+      #   description: 'Architecture: "" or "-arm"'
+      #   required: false
+      #   default: ''
+      #   type: string
       targets:
-        description: 'JSON targets as eg {"target":["ab","cd","de"]}'
+        description: 'JSON all: {"target":["a","b","c"]}'
         required: true
-        ##default: '{ "target": [ "alpha", "beta", "gamma" ] }'
-        default: ''
+        default: '{"target":["digest","tint"]}'
+        type: string
+      arm_targets:
+        description: 'JSON arm: {"target":["a","c"]}'
+        required: true
+        default: '{"target":["digest"]}'
         type: string
 
 jobs:
-  setup:
-    runs-on: ubuntu-24.04${{ inputs.arch }}
-    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+  prepare:
+    runs-on: ubuntu-latest
     container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+      image: eddelbuettel/gha_r2u_bioc_build:noble
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check Variables
-        run: |
-          echo "Variable dist is ${{ inputs.dist }}"
-          echo "Variable arch is ${{ inputs.arch }}"
-          echo "Variable repo is ${{ inputs.repo }}"
-          echo "Variable targets is ${{ inputs.targets }}"
       - name: Create Default Config and Cache
         run: |
           r -e 'r2u:::.createDefaultConfiguration()'
@@ -72,11 +69,34 @@ jobs:
         with:
           name: r2u_config
           path: ~/.local/share/R/r2u
+    
+  setup:
+    needs: prepare
+    strategy:
+      matrix:
+        include:
+          - { name: noble,  rel: 24.04,  cpu: -arm }
+          - { name: noble,  rel: 24.04             }
+          - { name: jammy,  rel: 22.04             }
+    runs-on: ubuntu-${{ matrix.rel }}${{ matrix.cpu }}
+    container:
+      image: eddelbuettel/gha_r2u_bioc_build:${{ matrix.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check Variables
+        run: |
+          echo "Variable matrix.name is ${{ matrix.name }}"
+          echo "Variable matrix.rel  is ${{ matrix.rel }}"
+          echo "Variable matrix.cpu  is ${{ matrix.cpu }}"
+          echo "Variable repo is ${{ inputs.repo }}"
+          echo "Variable targets is ${{ inputs.targets }}"
+          echo "Variable arm_targets is ${{ inputs.arm_targets }}"
                    
   build:
     needs: setup
     runs-on: ubuntu-24.04${{ inputs.arch }}
-    if: github.repository == 'eddelbuettel/r2u-bioc-builder'
+    if: github.repository != 'eddelbuettel/r2u-bioc-builder'
     container:
       image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
     strategy:
