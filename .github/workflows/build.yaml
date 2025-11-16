@@ -42,7 +42,7 @@ on:
         type: string
 
 jobs:
-  prepare:
+  setup:
     runs-on: ubuntu-latest
     container:
       image: eddelbuettel/gha_r2u_bioc_build:noble
@@ -70,83 +70,110 @@ jobs:
           name: r2u_config
           path: ~/.local/share/R/r2u
     
-  setup:
-    needs: prepare
+  # check:
+  #   needs: setup
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - { name: noble,  rel: 24.04,  cpu: -arm }
+  #         - { name: noble,  rel: 24.04             }
+  #         - { name: jammy,  rel: 22.04             }
+  #   runs-on: ubuntu-${{ matrix.rel }}${{ matrix.cpu }}
+  #   container:
+  #     image: eddelbuettel/gha_r2u_bioc_build:${{ matrix.name }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Check Variables
+  #       run: |
+  #         echo "Variable matrix.name is ${{ matrix.name }}"
+  #         echo "Variable matrix.rel  is ${{ matrix.rel }}"
+  #         echo "Variable matrix.cpu  is ${{ matrix.cpu }}"
+  #         echo "Variable repo is ${{ inputs.repo }}"
+  #         echo "Variable targets is ${{ inputs.targets }}"
+  #         echo "Variable arm_targets is ${{ inputs.arm_targets }}"
+
+  build_amd:
+    needs: setup
+    strategy:
+      matrix:
+        include:
+          - { name: noble,  rel: 24.04             }
+          - { name: jammy,  rel: 22.04             }
+    uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
+    with:
+      dist: ${{ matrix.name }}
+      arch: ${{ matrix.cpu }}
+      targets: ${{ inputs.targets }}
+    secrets: inherit
+    
+  build_arm:
+    needs: setup
     strategy:
       matrix:
         include:
           - { name: noble,  rel: 24.04,  cpu: -arm }
-          - { name: noble,  rel: 24.04             }
-          - { name: jammy,  rel: 22.04             }
-    runs-on: ubuntu-${{ matrix.rel }}${{ matrix.cpu }}
-    container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ matrix.name }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Check Variables
-        run: |
-          echo "Variable matrix.name is ${{ matrix.name }}"
-          echo "Variable matrix.rel  is ${{ matrix.rel }}"
-          echo "Variable matrix.cpu  is ${{ matrix.cpu }}"
-          echo "Variable repo is ${{ inputs.repo }}"
-          echo "Variable targets is ${{ inputs.targets }}"
-          echo "Variable arm_targets is ${{ inputs.arm_targets }}"
-                   
-  build:
-    needs: setup
-    runs-on: ubuntu-24.04${{ inputs.arch }}
-    if: github.repository != 'eddelbuettel/r2u-bioc-builder'
-    container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(inputs.targets) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Get Config
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: r2u_config
-          path: ~/.local/share/R/r2u
-      - name: Fetch Updated Config
-        uses: actions/checkout@v4
-        with:
-          repository: eddelbuettel/r2u-config
-          path: r2u-config
-      - name: Copy Updated depends.dcf
-        run: |
-          cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
-          ## Use setter for the config file
-          Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
-          ## Now update with CRAN info
-          Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
-      - name: Show package name
-        run: echo "Matrix arg is ${{ matrix.target }}"
-      - name: Build
-        run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
-      - name: Check
-        run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
-          make_latest: true
-          prerelease: true
-          tag_name: latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
-      - name: Release (Take 2)
-        if: steps.build.outcome == 'failure'
-        # we have about one in 10 or 20 uploads fail and a simple (manual)
-        # rerun helps; adding this second trial may alleviate a few of these
-        uses: softprops/action-gh-release@v2.2.2  # 2025-06-10: v2 is currently broken
-        with:
-          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
-          make_latest: true
-          prerelease: true
-          tag_name: latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+    uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
+    with:
+      dist: ${{ matrix.name }}
+      arch: ${{ matrix.cpu }}
+      targets: ${{ inputs.arm_targets }}
+    secrets: inherit
+          
+  # build:
+  #   needs: setup
+  #   runs-on: ubuntu-24.04${{ inputs.arch }}
+  #   if: github.repository != 'eddelbuettel/r2u-bioc-builder'
+  #   container:
+  #     image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix: ${{ fromJson(inputs.targets) }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Get Config
+  #       uses: actions/download-artifact@v4.1.8
+  #       with:
+  #         name: r2u_config
+  #         path: ~/.local/share/R/r2u
+  #     - name: Fetch Updated Config
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: eddelbuettel/r2u-config
+  #         path: r2u-config
+  #     - name: Copy Updated depends.dcf
+  #       run: |
+  #         cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
+  #         ## Use setter for the config file
+  #         Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+  #         ## Now update with CRAN info
+  #         Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+  #     - name: Show package name
+  #       run: echo "Matrix arg is ${{ matrix.target }}"
+  #     - name: Build
+  #       run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
+  #     - name: Check
+  #       run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
+  #         make_latest: true
+  #         prerelease: true
+  #         tag_name: latest
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+  #     - name: Release (Take 2)
+  #       if: steps.build.outcome == 'failure'
+  #       # we have about one in 10 or 20 uploads fail and a simple (manual)
+  #       # rerun helps; adding this second trial may alleviate a few of these
+  #       uses: softprops/action-gh-release@v2.2.2  # 2025-06-10: v2 is currently broken
+  #       with:
+  #         files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
+  #         make_latest: true
+  #         prerelease: true
+  #         tag_name: latest
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
           

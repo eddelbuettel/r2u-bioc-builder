@@ -1,0 +1,78 @@
+## cf https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
+
+name: workflow_build
+
+on:
+  workflow_call:
+    inputs:
+      dist:
+        description: 'The Ubuntu distribution to use'
+        required: true
+        default: 'noble'
+        type: string
+      arch:
+        description: 'Architecture: "" or "-arm"'
+        required: false
+        default: ''
+        type: string
+      targets:
+        description: 'JSON all: {"target":["a","b","c"]}'
+        required: true
+        default: ''
+        type: string
+        
+jobs:
+  build:
+    runs-on: ubuntu-24.04${{ inputs.arch }}
+    container:
+      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(inputs.targets) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get Config
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: r2u_config
+          path: ~/.local/share/R/r2u
+      - name: Fetch Updated Config
+        uses: actions/checkout@v4
+        with:
+          repository: eddelbuettel/r2u-config
+          path: r2u-config
+      - name: Copy Updated depends.dcf
+        run: |
+          cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
+          ## Use setter for the config file
+          Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+          ## Now update with CRAN info
+          Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+      - name: Show package name
+        run: echo "Matrix arg is ${{ matrix.target }}"
+      - name: Build
+        run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
+      - name: Check
+        run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+      - name: Release (Take 2)
+        if: steps.build.outcome == 'failure'
+        # we have about one in 10 or 20 uploads fail and a simple (manual)
+        # rerun helps; adding this second trial may alleviate a few of these
+        uses: softprops/action-gh-release@v2.2.2  # 2025-06-10: v2 is currently broken
+        with:
+          files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
