@@ -93,7 +93,7 @@ jobs:
   #         echo "Variable targets is ${{ inputs.targets }}"
   #         echo "Variable arm_targets is ${{ inputs.arm_targets }}"
 
-  build_amd:
+  build:
     needs: setup
     strategy:
       matrix:
@@ -103,7 +103,6 @@ jobs:
     uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
     with:
       dist: ${{ matrix.name }}
-      arch: ${{ matrix.cpu }}
       targets: ${{ inputs.targets }}
     secrets: inherit
     
@@ -112,11 +111,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - { name: noble,  rel: 24.04,  cpu: -arm }
+          - { name: noble,  rel: 24.04,  cpu: arm }
     uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
     with:
       dist: ${{ matrix.name }}
-      arch: ${{ matrix.cpu }}
+      arch: "-arm"
       targets: ${{ inputs.arm_targets }}
     secrets: inherit
           
