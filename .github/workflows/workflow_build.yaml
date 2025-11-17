@@ -47,8 +47,12 @@ jobs:
           cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
           ## Use setter for the config file
           Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
-          ## Now update with CRAN info
-          Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+      - name: Update CRAN cache info
+        id: cache_update
+        run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+      - name: Update CRAN cache info (Take 2)
+        if: steps.cache_update.outcome == failure()
+        run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
       - name: Show package name
         run: echo "Matrix arg is ${{ matrix.target }}"
       - name: Build
@@ -56,6 +60,7 @@ jobs:
       - name: Check
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
       - name: Release
+        id: release
         uses: softprops/action-gh-release@v2
         with:
           files: /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*deb
@@ -65,7 +70,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
       - name: Release (Take 2)
-        if: steps.build.outcome == 'failure'
+        if: steps.release.outcome == 'failure'
         # we have about one in 10 or 20 uploads fail and a simple (manual)
         # rerun helps; adding this second trial may alleviate a few of these
         uses: softprops/action-gh-release@v2.2.2  # 2025-06-10: v2 is currently broken
