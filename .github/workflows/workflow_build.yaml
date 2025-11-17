@@ -43,10 +43,14 @@ jobs:
           repository: eddelbuettel/r2u-config
           path: r2u-config
       - name: Copy Updated depends.dcf
-        run: |
-          cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
-          ## Use setter for the config file
-          Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+        run: cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
+      - name: Update Config
+        id: config_update
+        ## Use setter for the config file
+        run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+      - name: Update Config (Take 2)
+        if: steps.config_update.outcome == failure()
+        run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
       - name: Update CRAN cache info
         id: cache_update
         run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
