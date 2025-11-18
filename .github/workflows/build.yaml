@@ -100,7 +100,7 @@ jobs:
         include:
           - { name: noble,  rel: 24.04             }
           - { name: jammy,  rel: 22.04             }
-    uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
+    uses: eddelbuettel/r2u-builder/.github/workflows/workflow_build.yaml@main
     with:
       dist: ${{ matrix.name }}
       targets: ${{ inputs.targets }}
@@ -112,7 +112,7 @@ jobs:
       matrix:
         include:
           - { name: noble,  rel: 24.04,  cpu: arm }
-    uses: eddelbuettel/r2u-bioc-builder/.github/workflows/workflow_build.yaml@main
+    uses: eddelbuettel/r2u-builder/.github/workflows/workflow_build.yaml@main
     with:
       dist: ${{ matrix.name }}
       arch: "-arm"
