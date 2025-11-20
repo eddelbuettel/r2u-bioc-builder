@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+      image: eddelbuettel/gha_r2u_build:${{ inputs.dist }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'eddelbuettel/r2u-bioc-builder'
     container:
-      image: eddelbuettel/gha_r2u_bioc_build:${{ inputs.dist }}
+      image: eddelbuettel/gha_r2u_build:${{ inputs.dist }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.make_matrix.outputs.runmatrix) }}
