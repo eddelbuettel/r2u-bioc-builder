@@ -31,7 +31,7 @@ jobs:
           no-cache: true
           platforms: linux/amd64,linux/arm64
           context: r2u-builder/noble
-          tags: eddelbuettel/gha_r2u_bioc_build:noble
+          tags: eddelbuettel/gha_r2u_build:noble
           
   matrix:
     runs-on: ${{ matrix.config.runs }}
@@ -61,5 +61,5 @@ jobs:
         push: true
         no-cache: true
         context: r2u-builder/${{ matrix.config.tag }}
-        tags: eddelbuettel/gha_r2u_bioc_build:${{ matrix.config.tag }}
+        tags: eddelbuettel/gha_r2u_build:${{ matrix.config.tag }}
           
