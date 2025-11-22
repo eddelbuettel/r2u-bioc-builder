@@ -24,7 +24,7 @@ on:
       arm_targets:
         description: 'JSON arm: {"target":["a","c"]}'
         required: true
-        default: '{"target":["digest"]}'
+        default: '{"target":[""]}'
         type: string
 
 jobs:
@@ -71,6 +71,7 @@ jobs:
     
   build_arm:
     needs: setup
+    if: ${{ inputs.arm_targets != '{"target":[""]}' }}
     strategy:
       matrix:
         include:
