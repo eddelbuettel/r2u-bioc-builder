@@ -44,19 +44,19 @@ jobs:
           path: r2u-config
       - name: Copy Updated depends.dcf
         run: cp -vax r2u-config/depends.dcf r2u-config/depends.${{ inputs.dist }}.dcf ~/.local/share/R/r2u
-      - name: Update Config
-        id: config_update
-        ## Use setter for the config file
-        run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
-      - name: Update Config (Take 2)
-        if: steps.config_update.outcome == failure()
-        run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
-      - name: Update CRAN cache info
-        id: cache_update
-        run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
-      - name: Update CRAN cache info (Take 2)
-        if: steps.cache_update.outcome == failure()
-        run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+      # - name: Update Config
+      #   id: config_update
+      #   ## Use setter for the config file
+      #   run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+      # - name: Update Config (Take 2)
+      #   if: steps.config_update.outcome == failure()
+      #   run: Rscript -e 'file <- r2u:::.defaultConfigFile(); cfg <- read.dcf(file); cfg <- r2u:::.updateConfig(cfg, "package_repo_preference", "cran"); r2u:::.writeConfigFile(cfg, file)'
+      # - name: Update CRAN cache info
+      #   id: cache_update
+      #   run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
+      # - name: Update CRAN cache info (Take 2)
+      #   if: steps.cache_update.outcome == failure()
+      #   run: Rscript -e 'r2u:::.loadAP(repo="cran", force=TRUE)'
       - name: Show package name
         run: echo "Matrix arg is ${{ matrix.target }}"
       - name: Build
