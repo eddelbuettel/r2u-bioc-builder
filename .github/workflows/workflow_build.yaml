@@ -62,8 +62,10 @@ jobs:
       - name: Build
         run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
+        if: success()
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
       - name: Release
+        if: success()
         id: release
         uses: softprops/action-gh-release@v2
         with:
