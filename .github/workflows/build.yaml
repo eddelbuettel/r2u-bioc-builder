@@ -44,12 +44,13 @@ jobs:
           repository: eddelbuettel/r2u-config
           path: r2u-config
       - name: Copy Updated Config
-        run: |
-          cp -vax r2u-config/* ~/.local/share/R/r2u
+        run: cp -vax r2u-config/* ~/.local/share/R/r2u
       - name: Create Cache
         run: |
           r -e 'r2u:::.loadDB()'
           r -e 'r2u:::.loadAP(repo="${{ inputs.repo }}")'
+          r -e 'r2u:::.allBuilds("jammy")'
+          r -e 'r2u:::.allBuilds("noble")'
       - name: Upload Config
         uses: actions/upload-artifact@v4.4.0
         with:
