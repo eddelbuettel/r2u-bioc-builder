@@ -61,6 +61,9 @@ jobs:
         run: echo "Matrix arg is ${{ matrix.target }}"
       - name: Build
         run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
+      - name: Build (Take 2)
+        if: failure()
+        run:  r2u.r -v -d -c -f -r ${{ inputs.dist }} package ${{ matrix.target }}
       - name: Check
         if: success()
         run:  test -f /var/local/r2u/ubuntu/pool/dists/${{ inputs.dist }}/main/*.deb
